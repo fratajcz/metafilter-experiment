@@ -1,0 +1,106 @@
+job.type: search
+search.type: ax
+search.on_error: continue
+dataset.name: drkg-nopc-with-inverse
+
+train:
+  max_epochs: 400
+  auto_correct: True
+
+valid:
+  every: 2
+  metric: mrr_avg_val
+  early_stopping:
+    patience: 3
+
+eval:
+  type: MyJob #CxDRankingHetionetAvg
+
+user:
+  dataset_variant: nopc-with-inverse
+  dataset: drkg
+
+# Settings for reciprocal relations (if used)
+modules: [kge.job, kge.model, kge.model.embedder]
+import: [MyFile]
+
+model: complex
+
+# Ax settings: hyperparameter search space
+ax_search:
+  num_trials: 30
+  num_sobol_trials: 30
+  parameters:
+
+
+    # Training hyperparameters
+    - name: train.type
+      type: fixed
+      value: negative_sampling
+    - name: train.batch_size
+      type: choice
+      values: [128, 256]
+    - name: train.optimizer
+      type: choice
+      values: [Adam, Adagrad]
+    - name: train.optimizer_args.lr
+      type: range
+      bounds: [0.0001, 1.0]
+      log_scale: True
+    - name: train.lr_scheduler
+      type: fixed
+      value: ReduceLROnPlateau
+    - name: train.lr_scheduler_args.mode
+      type: fixed
+      value: max
+    - name: train.lr_scheduler_args.factor
+      type: fixed
+      value: 0.95
+    - name: train.lr_scheduler_args.threshold
+      type: fixed
+      value: 0.0001
+    - name: train.lr_scheduler_args.patience
+      type: range
+      bounds: [0, 10]
+
+    # Embedding dimension
+    - name: lookup_embedder.dim
+      type: choice
+      values: [64, 128, 256]
+
+    # Embedding initialization
+    - name: lookup_embedder.initialize
+      type: fixed
+      value: xavier_normal_
+    - name: lookup_embedder.initialize_args.xavier_normal_.gain
+      type: fixed
+      value: 1.0
+
+    # Embedding regularization
+    - name: lookup_embedder.regularize
+      type: choice
+      values: ['', 'l2']
+    - name: lookup_embedder.regularize_args.weighted
+      type: choice
+      values: [True, False]
+    - name: complex.entity_embedder.regularize_weight
+      type: range
+      bounds: [1.0e-20, 1.0e-05]
+    - name: complex.relation_embedder.regularize_weight
+      type: range
+      bounds: [1.0e-20, 1.0e-05]
+
+    # Embedding dropout
+    - name: complex.entity_embedder.dropout
+      type: range
+      bounds: [0.0, 0.5]
+    - name: complex.relation_embedder.dropout
+      type: range
+      bounds: [0.0, 0.5]
+
+    # Training-type specific hyperparameters
+    - name: negative_sampling.num_negatives_o   #train_type: negative_sampling
+      type: range                               #train_type: negative_sampling
+      bounds: [1, 1000]                         #train_type: negative_sampling
+      log_scale: True                           #train_type: negative_sampling
+

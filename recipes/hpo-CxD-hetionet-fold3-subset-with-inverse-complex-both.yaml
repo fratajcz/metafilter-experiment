@@ -1,7 +1,6 @@
 job.type: search
 search.type: ax
-search.on_error: continue
-dataset.name: hetionet-fold1-subset-with-inverse
+dataset.name: hetionet-fold3-subset-with-inverse
 
 train:
   max_epochs: 400
@@ -9,24 +8,23 @@ train:
 
 valid:
   every: 2
-  metric: mean_reciprocal_rank_filtered_with_test
+  metric: mrr_avg_val
   early_stopping:
     patience: 3
 
-entity_ranking:
-  filter_with_test: True
-  hits_at_k_s: [1, 3, 5, 10, 20]
-  metrics_per:
-    head_and_tail: True
+eval:
+  type: MyJob #CxDRankingHetionetAvg
 
 user:
-  fold: 1
+  fold: 3
   dataset_variant: subset-with-inverse
+  dataset: hetionet
 
-model: reciprocal_relations_model
-reciprocal_relations_model.base_model.type: conve # redundant since also default
-conve.round_dim: true
-negative_sampling.num_samples.s: 0
+# Settings for reciprocal relations (if used)
+modules: [kge.job, kge.model, kge.model.embedder]
+import: [MyFile]
+
+model: complex
 
 # Ax settings: hyperparameter search space
 ax_search:
@@ -41,7 +39,7 @@ ax_search:
       value: negative_sampling
     - name: train.batch_size
       type: choice
-      values: [64, 128]
+      values: [128, 256]
     - name: train.optimizer
       type: choice
       values: [Adam, Adagrad]
@@ -85,18 +83,18 @@ ax_search:
     - name: lookup_embedder.regularize_args.weighted
       type: choice
       values: [True, False]
-    - name: conve.entity_embedder.regularize_weight
+    - name: complex.entity_embedder.regularize_weight
       type: range
       bounds: [1.0e-20, 1.0e-05]
-    - name: conve.relation_embedder.regularize_weight
+    - name: complex.relation_embedder.regularize_weight
       type: range
       bounds: [1.0e-20, 1.0e-05]
 
     # Embedding dropout
-    - name: conve.entity_embedder.dropout
+    - name: complex.entity_embedder.dropout
       type: range
       bounds: [0.0, 0.5]
-    - name: conve.relation_embedder.dropout
+    - name: complex.relation_embedder.dropout
       type: range
       bounds: [0.0, 0.5]
 
