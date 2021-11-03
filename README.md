@@ -2,9 +2,11 @@
 
 # Purpose
 
-This repository contains the code for the experiments in the paper "..." by ... 
+This repository contains the code for the experiments in the paper "Task-Driven Knowledge Graph Filtering Improves Prioritizing Drugs for Repurposing" (DOI: [10.21203/rs.3.rs-721705/v1](https://doi.org/10.21203/rs.3.rs-721705/v1). 
 
 # Installation
+
+We have made extensive use of the LibKGE framework. To make sure that we measure only the performance in our task during performance evaluation, we have added a Job that is specific to the experiments in the paper. It scores all possible relations between compounds and diseases and nothing else. 
 
 ## Install LibKGE
 
