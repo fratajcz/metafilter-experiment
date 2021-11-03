@@ -5,16 +5,16 @@ import sys
 import pandas as pd 
 import sklearn.preprocessing as preprocessing
 import numpy as np
+import os
+from evaluator import Evaluator
 
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("-p","--path",type=str, default="", help="path to the directory where checkpoint_best.pt is stored.")
 args = parser.parse_args()
 
-#best_model = "local/experiments/20210201-181752-hpo-CxD-hetionet-fold1-subset-with-inverse-transe-both/00014/checkpoint_best.pt"
 
-prefix = "/aig/users/z0042eaf/experiments/"
-#prefix = "/homestg/z0042eaf/src/libkge/local/experiments/"
+prefix = ""
 suffix = "checkpoint_best.pt"
 
 #### Best Checkpoints for the best Runs:
@@ -99,7 +99,7 @@ if args.path != "":
     run = args.path
 
 print(run)
-best_model = prefix + run + suffix
+best_model = os.path.join(prefix, run, suffix)
 
 if "hetionet" in run:
     evaluation_relation_whitelist = ['CtD',"CtD_inv"]
@@ -109,22 +109,35 @@ else:
     raise ValueError(best_model)
 
 
-
-#best_model = "/homestg/z0042eaf/src/libkge/local/experiments/20210205-071150-hpo-default-hetionet-fold1-subset-with-inverse-conve-both/00000/checkpoint_best.pt"
-
 checkpoint = load_checkpoint(best_model)
+
+
 
 if "full" in best_model:
     dataset_version = "full"
 elif "subset" in best_model:
     dataset_version = "subset"
-elif "yushan" in best_model:
-    dataset_version = ""
+elif "noana" in best_model:
+    dataset_version = "noana"
+elif "nogene" in best_model:
+    dataset_version = "nogene"
+elif "nosymp" in best_model:
+    dataset_version = "nosymp"
+elif "noside" in best_model:
+    dataset_version = "noside"
+elif "nopc" in best_model:
+    dataset_version = "nopc"
 else:
     raise ValueError(best_model)
 
 #if "inverse" in best_model:
 dataset_version += "-with-inverse"
+
+if "hetionet" in best_model:
+    dataset = "hetionet"
+elif "drkg" in best_model:
+    dataset = "drkg"
+
 
 if "hetionet" in best_model:
     if "fold1" in best_model:
@@ -135,37 +148,39 @@ if "hetionet" in best_model:
         fold = 3
     elif "fold4" in best_model:
         fold = 4
-    elif "yushan" in best_model:
-        fold = "yushan"
     else:
         raise ValueError(best_model)
+
+
+checkpoint["config"].set("dataset.name","{}-fold{}-{}".format(dataset,fold,dataset_version))
 
 model = KgeModel.create_from(checkpoint)
 
 model = model
 
-sys.path.append("/homestg/z0042eaf/")
-from evaluator import Evaluator
+
+
+base_path= "./kge"
 
 if "hetionet" in best_model:
-    evaluator = Evaluator(ground_truth_train="/homestg/z0042eaf/ground_truth_train_fold{}.npz".format(fold),
-                          ground_truth_val="/homestg/z0042eaf/ground_truth_val_fold{}.npz".format(fold),
-                          ground_truth_test="/homestg/z0042eaf/ground_truth_test_fold{}.npz".format(fold))
+    evaluator = Evaluator(ground_truth_train=os.path.join(base_path, "truth_hetionet/ground_truth_train_fold{}.npz".format(fold)),
+                          ground_truth_val=os.path.join(base_path, "truth_hetionet/ground_truth_val_fold{}.npz".format(fold)),
+                          ground_truth_test=os.path.join(base_path, "truth_hetionet/ground_truth_test_fold{}.npz".format(fold)))
 elif "drkg" in best_model:
-    evaluator = Evaluator(ground_truth_train="/homestg/z0042eaf/truth_drkg/ground_truth_train.npz",
-                          ground_truth_val="/homestg/z0042eaf/truth_drkg/ground_truth_val.npz",
-                          ground_truth_test="/homestg/z0042eaf/truth_drkg/ground_truth_test.npz")
+    evaluator = Evaluator(ground_truth_train=os.path.join(base_path,"truth_drkg/ground_truth_train.npz"),
+                          ground_truth_val=os.path.join(base_path,"truth_drkg/ground_truth_val.npz"),
+                          ground_truth_test=os.path.join(base_path,"truth_drkg/ground_truth_test.npz"))
 
 if "hetionet" in best_model:
     if dataset_version != "":
-        entity_ids_df = pd.read_csv("/homestg/z0042eaf/src/libkge/data/hetionet-fold{}-{}/entity_ids.del".format(fold,dataset_version),sep="\t",names=['id', 'name'])
-        relation_ids_df = pd.read_csv("/homestg/z0042eaf/src/libkge/data/hetionet-fold{}-{}/relation_ids.del".format(fold,dataset_version),sep="\t",names=['id', 'name'])
+        entity_ids_df = pd.read_csv(os.path.join(base_path,"data/hetionet-fold{}-{}/entity_ids.del".format(fold, dataset_version)),sep="\t",names=['id', 'name'])
+        relation_ids_df = pd.read_csv(os.path.join(base_path,"data/hetionet-fold{}-{}/relation_ids.del".format(fold, dataset_version)),sep="\t",names=['id', 'name'])
     else:
         entity_ids_df = pd.read_csv("/home/fratajczak/kge/data/hetionet-{}/entity_ids.del".format(fold),sep="\t",names=['id', 'name'])
         relation_ids_df = pd.read_csv("/home/fratajczak/kge/data/hetionet-{}/relation_ids.del".format(fold),sep="\t",names=['id', 'name'])
 elif "drkg" in best_model:
-    entity_ids_df = pd.read_csv("/homestg/z0042eaf/src/libkge/data/drkg-{}/entity_ids.del".format(dataset_version),sep="\t",names=['id', 'name'])
-    relation_ids_df = pd.read_csv("/homestg/z0042eaf/src/libkge/data/drkg-{}/relation_ids.del".format(dataset_version),sep="\t",names=['id', 'name'])
+    entity_ids_df = pd.read_csv(os.path.join(base_path,"data/drkg-{}/entity_ids.del".format(dataset_version)),sep="\t",names=['id', 'name'])
+    relation_ids_df = pd.read_csv(os.path.join(base_path,"data/drkg-{}/relation_ids.del".format(dataset_version)),sep="\t",names=['id', 'name'])
 
 entity_ids = {x["name"]: x["id"] for _, x in entity_ids_df.iterrows()}
 relation_ids = {x["name"]: x["id"] for _, x in relation_ids_df.iterrows()}
@@ -174,11 +189,11 @@ disease_encoder = preprocessing.LabelEncoder()
 compound_encoder = preprocessing.LabelEncoder()
 
 if "hetionet" in best_model:
-    disease_encoder.classes_ = np.load('/homestg/z0042eaf/disease_classes_fold{}.npy'.format(fold),allow_pickle = True)
-    compound_encoder.classes_ = np.load('/homestg/z0042eaf/compound_classes_fold{}.npy'.format(fold),allow_pickle = True)
+    disease_encoder.classes_ = np.load(os.path.join(base_path, 'truth_hetionet/disease_classes_fold{}.npy'.format(fold)),allow_pickle = True)
+    compound_encoder.classes_ = np.load(os.path.join(base_path, 'truth_hetionet/compound_classes_fold{}.npy'.format(fold)),allow_pickle = True)
 elif "drkg" in best_model:
-    disease_encoder.classes_ = np.load('/homestg/z0042eaf/truth_drkg/disease_classes.npy',allow_pickle = True)
-    compound_encoder.classes_ = np.load('/homestg/z0042eaf/truth_drkg/compound_classes.npy',allow_pickle = True)
+    disease_encoder.classes_ = np.load(os.path.join(base_path, 'truth_drkg/disease_classes.npy'),allow_pickle = True)
+    compound_encoder.classes_ = np.load(os.path.join(base_path, 'truth_drkg/compound_classes.npy'),allow_pickle = True)
 
 disease_indices = torch.LongTensor([entity_ids[x] if x in entity_ids.keys() else -1 for x in disease_encoder.classes_])
 compound_indices = torch.LongTensor([entity_ids[x] if x in entity_ids.keys() else -1 for x in compound_encoder.classes_])
@@ -199,31 +214,29 @@ random_relation = model.get_p_embedder().embed(relation_indices[0])
 relation_dim = random_relation.shape[0]
 
 
+if "conve" not in best_model and "rescal" not in best_model:
+    disease_embeddings = torch.stack([model.get_s_embedder().embed(x) if x != -1 else torch.zeros(entity_dim) for x in disease_indices])
+    compound_embeddings = torch.stack([model.get_s_embedder().embed(x) if x != -1 else torch.zeros(entity_dim) for x in compound_indices])
+    relation_embeddings = torch.stack([model.get_p_embedder().embed(x) if x != -1 else torch.zeros(relation_dim) for x in relation_indices])
 
-disease_embeddings = torch.stack([model.get_s_embedder().embed(x) if x != -1 else torch.zeros(entity_dim) for x in disease_indices])
-compound_embeddings = torch.stack([model.get_s_embedder().embed(x) if x != -1 else torch.zeros(entity_dim) for x in compound_indices])
-relation_embeddings = torch.stack([model.get_p_embedder().embed(x) if x != -1 else torch.zeros(relation_dim) for x in relation_indices])
-
-num_diseases = disease_embeddings.shape[0]
-num_compounds = compound_embeddings.shape[0]
-num_relations = relation_embeddings.shape[0]
+num_diseases = disease_indices.shape[0]
+num_compounds = compound_indices.shape[0]
+num_relations = relation_indices.shape[0]
 
 metrics = {}
 
 for i in range(num_relations):
     if evaluation_relation_whitelist[i] in ["CtD", 'union::treats::Compound:Disease']:
         if "conve" in best_model or "rescal" in best_model:
-            stack = []
-            for s in compound_indices:
-                for o in disease_indices:
-                    stack.append([s, relation_indices[i], o])
-            stack = torch.as_tensor(stack).cuda()
             
-            scores = torch.empty((num_compounds,num_diseases)).cuda()
-            for j in range(num_compounds):
-                    scores[j,:] = model.score_spo(stack[num_diseases * j:num_diseases * (j +1),0],
-                                                  stack[num_diseases * j:num_diseases * (j +1),1],
-                                                  stack[num_diseases * j:num_diseases * (j +1),2], "o")
+            scores = torch.empty((num_compounds,num_diseases))
+
+            relation = relation_indices[i]
+            for j, s in enumerate(compound_indices):
+                for k, o in enumerate(disease_indices):
+                    scores[j,k] = model.score_sp(s.unsqueeze(0),
+                                              relation.unsqueeze(0),
+                                              o.unsqueeze(0))
 
         else:
             scores = model._scorer.score_emb(compound_embeddings, relation_embeddings[i].unsqueeze(0), disease_embeddings, combine= "sp_")
@@ -231,16 +244,13 @@ for i in range(num_relations):
 
     else:
         if "conve" in best_model or "rescal" in best_model:
-            stack = []
-            for s in disease_indices:
-                for o in compound_indices:
-                    stack.append([s, relation_indices[i], o])
-            stack = torch.as_tensor(stack)
             scores = torch.empty((num_diseases,num_compounds))
-            for j in range(num_diseases):
-                    scores[j,:] = model.score_spo(stack[num_compounds * j:num_compounds * (j +1),0],
-                                                  stack[num_compounds * j:num_compounds * (j +1),1],
-                                                  stack[num_compounds * j:num_compounds * (j +1),2], "o")
+            relation = relation_indices[i]
+            for j, s in enumerate(disease_indices):
+                for k, o in enumerate(compound_indices):
+                    scores[j,k] = model.score_sp(s.unsqueeze(0),
+                                              relation.unsqueeze(0),
+                                              o.unsqueeze(0))
 
         else:
             scores = model._scorer.score_emb(disease_embeddings, relation_embeddings[i].unsqueeze(0), compound_embeddings, combine= "sp_")
@@ -249,15 +259,70 @@ for i in range(num_relations):
 
 
     evaluator.evaluate(scores.detach().cpu().numpy(), use_testing=True)
+
     if evaluation_relation_whitelist[i] in ["CtD", 'union::treats::Compound:Disease']:
         metrics.update({"mrr_CxD_train": float(evaluator.mrrs_row_train[-1]),
                         "mrr_CxD_val": float(evaluator.mrrs_row_val[-1]),
                         "mrr_CxD_test": float(evaluator.mrrs_row_test[-1])})  
+        metrics.update({"mean_rank_CxD_train": float(evaluator.mean_ranks_row_train[-1]),
+                        "mean_rank_CxD_val": float(evaluator.mean_ranks_row_val[-1]),
+                        "mean_rank_CxD_test": float(evaluator.mean_ranks_row_test[-1])}) 
+        metrics.update({"hat5_CxD_train": float(evaluator.hat5_row_train[-1]),
+                        "hat5_CxD_val": float(evaluator.hat5_row_val[-1]),
+                        "hat5_CxD_test": float(evaluator.hat5_row_test[-1])}) 
+        metrics.update({"hat10_CxD_train": float(evaluator.hat10_row_train[-1]),
+                        "hat10_CxD_val": float(evaluator.hat10_row_val[-1]),
+                        "hat10_CxD_test": float(evaluator.hat10_row_test[-1])}) 
+        metrics.update({"hat20_CxD_train": float(evaluator.hat20_row_train[-1]),
+                        "hat20_CxD_val": float(evaluator.hat20_row_val[-1]),
+                        "hat20_CxD_test": float(evaluator.hat20_row_test[-1])}) 
+        metrics.update({"hat50_CxD_train": float(evaluator.hat50_row_train[-1]),
+                        "hat50_CxD_val": float(evaluator.hat50_row_val[-1]),
+                        "hat50_CxD_test": float(evaluator.hat50_row_test[-1])}) 
     else:
         metrics.update({"mrr_DxC_train": float(evaluator.mrrs_col_train[-1]),
                         "mrr_DxC_val": float(evaluator.mrrs_col_val[-1]),
                         "mrr_DxC_test": float(evaluator.mrrs_col_test[-1])})
+        metrics.update({"mean_rank_DxC_train": float(evaluator.mean_ranks_col_train[-1]),
+                        "mean_rank_DxC_val": float(evaluator.mean_ranks_col_val[-1]),
+                        "mean_rank_DxC_test": float(evaluator.mean_ranks_col_test[-1])}) 
+        metrics.update({"hat5_DxC_train": float(evaluator.hat5_col_train[-1]),
+                        "hat5_DxC_val": float(evaluator.hat5_col_val[-1]),
+                        "hat5_DxC_test": float(evaluator.hat5_col_test[-1])}) 
+        metrics.update({"hat10_DxC_train": float(evaluator.hat10_col_train[-1]),
+                        "hat10_DxC_val": float(evaluator.hat10_col_val[-1]),
+                        "hat10_DxC_test": float(evaluator.hat10_col_test[-1])}) 
+        metrics.update({"hat20_DxC_train": float(evaluator.hat20_col_train[-1]),
+                        "hat20_DxC_val": float(evaluator.hat20_col_val[-1]),
+                        "hat20_DxC_test": float(evaluator.hat20_col_test[-1])}) 
+        metrics.update({"hat50_DxC_train": float(evaluator.hat50_col_train[-1]),
+                        "hat50_DxC_val": float(evaluator.hat50_col_val[-1]),
+                        "hat50_DxC_test": float(evaluator.hat50_col_test[-1])}) 
 
+metric_keys = ["mrr","mean_rank","hat5","hat10","hat20","hat50"]
+splits = ["train","val","test"]
+
+for metric in metric_keys:
+    for split in splits:
+        CxD = metrics["{}_CxD_{}".format(metric, split)]
+        DxC = metrics["{}_DxC_{}".format(metric, split)]
+
+        mean = np.mean((CxD, DxC))
+        metrics.update({"{}_both_{}".format(metric, split): mean})
+
+models = ["rescal","complex","transe","conve","distmult"]
+
+for model in models:
+    if model in best_model:
+        actual_model = model
+
+results = pd.DataFrame(data = metrics.values(), index=metrics.keys(), columns=["{}-{}-{}.csv".format(dataset,dataset_version,actual_model)])
+
+#results.to_csv(os.path.join(base_path, "results","hetionet-crossval", "{}-{}-{}.csv".format(dataset,dataset_version,actual_model)))
+if "hetionet" in best_model:
+    results.to_csv(os.path.join(base_path, "results", "{}-fold{}-{}-{}.csv".format(dataset,fold,dataset_version,actual_model)))
+else:
+    results.to_csv(os.path.join(base_path, "results", "{}-{}-{}.csv".format(dataset,dataset_version,actual_model)))
 
 print(metrics)
 
@@ -303,4 +368,4 @@ metrics = {"mrr_CxD_train": float(evaluator.mrrs_row_train[-1]),
 print("Compound + {} = Disease:".format(evaluation_relation_whitelist[0]))
 print(metrics)
 """
-evaluator.random(10,seed=1,proximity=scores.detach().cpu().numpy(), use_testing=True)
+#evaluator.random(10,seed=1,proximity=scores.detach().cpu().numpy(), use_testing=True)

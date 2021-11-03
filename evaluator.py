@@ -11,6 +11,35 @@ class Evaluator():
         self.mrrs_row_val = []
         self.mrrs_col_train = []
         self.mrrs_col_val = []
+
+        self.mean_ranks_row_train = []
+        self.mean_ranks_row_val = []
+        self.mean_ranks_col_train = []
+        self.mean_ranks_col_val = []
+
+
+        self.hat5_row_train = []
+        self.hat5_row_val = []
+        self.hat5_col_train = []
+        self.hat5_col_val = []
+
+
+        self.hat10_row_train = []
+        self.hat10_row_val = []
+        self.hat10_col_train = []
+        self.hat10_col_val = []
+
+
+        self.hat20_row_train = []
+        self.hat20_row_val = []
+        self.hat20_col_train = []
+        self.hat20_col_val = []
+
+        self.hat50_row_train = []
+        self.hat50_row_val = []
+        self.hat50_col_train = []
+        self.hat50_col_val = []
+
         self.evaluation_epochs = []
         self.truth_val_matrix = load_npz(ground_truth_val).toarray() if ground_truth_val != None else None
         self.truth_train_matrix = load_npz(ground_truth_train).toarray() if ground_truth_train != None else None
@@ -85,8 +114,7 @@ class Evaluator():
             #ordered_truth_train_both = np.concatenate((ordered_truth_train, ordered_truth_train_transpose),1)
             #ordered_truth_val_both = np.concatenate((ordered_truth_val, ordered_truth_val_transpose),1)
             #print(ordered_truth_train_both.shape)
-            print(self.mean_reciprocal_rank(both_train, both_val))
-            print(self.mean_reciprocal_rank(both_val, both_train))
+            
             '''
             mrr_both_train = self.mean_reciprocal_rank([rs for rs in ], ordered_truth_val_both)
             mrr_both_val = self.mean_reciprocal_rank(ordered_truth_val_both, ordered_truth_train_both)
@@ -104,12 +132,48 @@ class Evaluator():
 
         if use_testing:
             self.mrrs_row_test = [mrr_row_test[1]]
-            self.mrrs_col_test = [mrr_col_test[1]]      
+            self.mrrs_col_test = [mrr_col_test[1]]   
+            self.mean_ranks_row_test = [mrr_row_test[3]]
+            self.mean_ranks_col_test = [mrr_col_test[3]]   
+            self.hat5_row_test = [mrr_row_test[5]]
+            self.hat5_col_test = [mrr_col_test[5]]  
+            self.hat10_row_test = [mrr_row_test[7]]
+            self.hat10_col_test = [mrr_col_test[7]]  
+            self.hat20_row_test = [mrr_row_test[9]]
+            self.hat20_col_test = [mrr_col_test[9]]  
+            self.hat50_row_test = [mrr_row_test[11]]
+            self.hat50_col_test = [mrr_col_test[11]]  
+               
         
         self.mrrs_row_train.append(mrr_row_train[1])
         self.mrrs_row_val.append(mrr_row_val[1])
         self.mrrs_col_train.append(mrr_col_train[1])
         self.mrrs_col_val.append(mrr_col_val[1])
+
+        self.mean_ranks_row_train.append(mrr_row_train[3])
+        self.mean_ranks_row_val.append(mrr_row_val[3])
+        self.mean_ranks_col_train.append(mrr_col_train[3])
+        self.mean_ranks_col_val.append(mrr_col_val[3])
+
+        self.hat5_row_train.append(mrr_row_train[5])
+        self.hat5_row_val.append(mrr_row_val[5])
+        self.hat5_col_train.append(mrr_col_train[5])
+        self.hat5_col_val.append(mrr_col_val[5])
+
+        self.hat10_row_train.append(mrr_row_train[7])
+        self.hat10_row_val.append(mrr_row_val[7])
+        self.hat10_col_train.append(mrr_col_train[7])
+        self.hat10_col_val.append(mrr_col_val[7])
+
+        self.hat20_row_train.append(mrr_row_train[9])
+        self.hat20_row_val.append(mrr_row_val[9])
+        self.hat20_col_train.append(mrr_col_train[9])
+        self.hat20_col_val.append(mrr_col_val[9])
+
+        self.hat50_row_train.append(mrr_row_train[11])
+        self.hat50_row_val.append(mrr_row_val[11])
+        self.hat50_col_train.append(mrr_col_train[11])
+        self.hat50_col_val.append(mrr_col_val[11])
 
     def random(self, n_times=10, seed=None, proximity=None, use_testing=False):
 
@@ -163,8 +227,15 @@ class Evaluator():
             Mean reciprocal rank
         """
         # NOTE: array is reversed during the procedure, since np.argsort only allows for sorting in ascending order
-        rs_raw = (np.asarray(r[::-1]).nonzero()[0] for r in rs if np.sum(r) > 0)
+        rs_raw = list(np.asarray(r[::-1]).nonzero()[0] for r in rs if np.sum(r) > 0)
+        
         mrr_raw = np.mean([1. / (r + 1) for sublist in rs_raw for r in sublist]) 
+        mean_rank_raw = np.mean([r + 1 for sublist in rs_raw for r in sublist]) 
+
+        hitsat5_raw = np.mean([1 if r < 5 else 0 for sublist in rs_raw for r in sublist]) 
+        hitsat10_raw = np.mean([1 if r < 10 else 0 for sublist in rs_raw for r in sublist]) 
+        hitsat20_raw = np.mean([1 if r < 20 else 0 for sublist in rs_raw for r in sublist]) 
+        hitsat50_raw = np.mean([1 if r < 50 else 0 for sublist in rs_raw for r in sublist]) 
 
         total_before = np.sum(rs)
 
@@ -196,10 +267,17 @@ class Evaluator():
             assert np.sum(r) == 1 # only one edge in every array
 
         # NOTE: array is reversed during the procedure, since np.argsort only allows for sorting in ascending order
-        rs_filtered = (np.asarray(r[::-1]).nonzero()[0] for r in rs_filtered if np.sum(r) > 0)
+        rs_filtered = list(np.asarray(r[::-1]).nonzero()[0] for r in rs_filtered if np.sum(r) > 0)
         mrr_filtered = np.mean([1. / (r + 1) if r.size else 0. for r in rs_filtered]) 
+        mean_rank_filtered = np.mean([r + 1 if r.size else 0. for r in rs_filtered]) 
 
-        return mrr_raw, mrr_filtered        
+        hitsat5_filtered = np.mean([1 if r < 5 else 0 for sublist in rs_filtered for r in sublist])
+        hitsat10_filtered = np.mean([1 if r < 10 else 0 for sublist in rs_filtered for r in sublist])
+        hitsat20_filtered = np.mean([1 if r < 20 else 0 for sublist in rs_filtered for r in sublist]) 
+        hitsat50_filtered = np.mean([1 if r < 50 else 0 for sublist in rs_filtered for r in sublist])
+
+        return (mrr_raw, mrr_filtered, mean_rank_raw, mean_rank_filtered, hitsat5_raw, hitsat5_filtered, hitsat10_raw, hitsat10_filtered,
+            hitsat20_raw, hitsat20_filtered, hitsat50_raw, hitsat50_filtered)
 
 
     
@@ -213,7 +291,6 @@ def main():
     evaluator.truth_val_matrix = truth_test
     evaluator.truth_train_matrix = truth_train
     evaluator.evaluate(similarity)
-    print(evaluator.mrrs_row_train ,evaluator.mrrs_row_val ,evaluator.mrrs_col_train ,evaluator.mrrs_col_val )
-
+    
 if __name__ == '__main__':
     main()
