@@ -1,0 +1,45 @@
+job.type: train
+dataset.name: drkg-full-with-inverse
+
+train:
+  max_epochs: 400
+  auto_correct: True
+  subbatch_auto_tune: true
+
+valid:
+  every: 3
+  metric: mrr_avg_val
+  early_stopping:
+    patience: 3
+
+eval:
+  type: CxDRankingHetionetAvg
+
+user:
+  dataset: drkg
+  dataset_variant: full-with-inverse
+
+model: reciprocal_relations_model
+reciprocal_relations_model.base_model.type: conve # redundant since also default
+conve.round_dim: true
+negative_sampling.num_samples.s: 0
+  
+train.optimizer_args.lr: 0.02198079689451172
+train.lr_scheduler_args.patience: 9
+conve.entity_embedder.regularize_weight: 9.679140429943802e-06
+conve.relation_embedder.regularize_weight: 4.248792706057436e-06
+conve.entity_embedder.dropout: 0.044595539569854736
+conve.relation_embedder.dropout: 0.413332327734679
+negative_sampling.num_negatives_o: 83
+train.batch_size: 128
+train.optimizer: 'Adagrad'
+lookup_embedder.dim: 64
+lookup_embedder.regularize: ''
+lookup_embedder.regularize_args.weighted: True
+train.type: 'negative_sampling'
+train.lr_scheduler: 'ReduceLROnPlateau'
+train.lr_scheduler_args.mode: 'max'
+train.lr_scheduler_args.factor: 0.95
+train.lr_scheduler_args.threshold: 0.0001
+lookup_embedder.initialize: 'xavier_normal_'
+lookup_embedder.initialize_args.xavier_normal_.gain: 1.0 

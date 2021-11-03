@@ -1,0 +1,5 @@
+#import: [eval]
+
+MyJob:
+  class_name: MyJob
+  type: EvaluationJob

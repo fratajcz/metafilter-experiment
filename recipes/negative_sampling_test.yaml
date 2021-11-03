@@ -1,0 +1,4 @@
+negative_sampling:
+    num_negatives_s: 0
+    num_negatives_p: 0
+    num_negatives_o: 1
