@@ -13,7 +13,7 @@ valid:
     patience: 3
 
 eval:
-  type: CxDRankingHetionetAvg
+  type: MyJob
 
 user:
   dataset: drkg
@@ -23,7 +23,9 @@ model: reciprocal_relations_model
 reciprocal_relations_model.base_model.type: conve # redundant since also default
 conve.round_dim: true
 negative_sampling.num_samples.s: 0
-  
+
+import: [MyFile]
+
 train.optimizer_args.lr: 0.02198079689451172
 train.lr_scheduler_args.patience: 9
 conve.entity_embedder.regularize_weight: 9.679140429943802e-06

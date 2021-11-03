@@ -16,14 +16,14 @@ valid:
     patience: 3
 
 eval:
-  type: CxDRankingHetionetAvg
+  type: MyJob
 
 user:
   dataset: drkg
   dataset_variant: full-with-inverse
 
 model: rescal
-  
+import: [MyFile]
 
 rescal.entity_embedder.regularize_weight: 2.3376129847019993e-06
 rescal.relation_embedder.regularize_weight: 9.272239170968534e-06

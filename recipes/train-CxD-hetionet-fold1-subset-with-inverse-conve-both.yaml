@@ -14,11 +14,13 @@ valid:
     patience: 3
 
 eval:
-  type: CxDRankingHetionetAvg
+  type: MyJob
 
 user:
   fold: 1
   dataset_variant: subset-with-inverse
+
+import: [MyFile]
 
 model: reciprocal_relations_model
 reciprocal_relations_model.base_model.type: conve # redundant since also default

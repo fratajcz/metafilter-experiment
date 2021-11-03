@@ -13,14 +13,14 @@ valid:
     patience: 3
 
 eval:
-  type: CxDRankingHetionetAvg
+  type: MyJob
 
 user:
   fold: 1
   dataset_variant: full-with-inverse
 
 model: complex
-
+import: [MyFile]
 # Ax settings: hyperparameter search space
 ax_search:
   num_trials: 30

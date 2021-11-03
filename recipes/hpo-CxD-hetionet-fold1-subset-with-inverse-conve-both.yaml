@@ -14,7 +14,7 @@ valid:
     patience: 3
 
 eval:
-  type: CxDRankingHetionetAvg
+  type: MyJob
 
 user:
   fold: 1
@@ -25,7 +25,7 @@ reciprocal_relations_model.base_model.type: conve # redundant since also default
 conve.round_dim: true
 negative_sampling.num_samples.s: 0
   
-
+import: [MyFile]
 # Ax settings: hyperparameter search space
 ax_search:
   num_trials: 30

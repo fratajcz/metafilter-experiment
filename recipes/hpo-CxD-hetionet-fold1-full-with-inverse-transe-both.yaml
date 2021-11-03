@@ -13,14 +13,14 @@ valid:
     patience: 3
 
 eval:
-  type: CxDRankingHetionetAvg
+  type: MyJob
 
 user:
   fold: 1
   dataset_variant: full-with-inverse
 
 # Settings for reciprocal relations (if used)
-import: [transe, reciprocal_relations_model]
+import: [transe, reciprocal_relations_model, MyFile]
 reciprocal_relations_model.base_model.type: transe
 
 # Ax settings: hyperparameter search space

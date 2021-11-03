@@ -13,8 +13,8 @@ valid:
     patience: 3
 
 eval:
-  type: MyJob #CxDRankingHetionetAvg
-
+  type: MyJob
+  
 user:
   fold: 3
   dataset_variant: subset-with-inverse

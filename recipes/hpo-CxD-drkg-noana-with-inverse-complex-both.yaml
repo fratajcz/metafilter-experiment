@@ -14,7 +14,7 @@ valid:
     patience: 3
 
 eval:
-  type: MyJob #CxDRankingHetionetAvg
+  type: MyJob 
 
 user:
   dataset_variant: noana-with-inverse

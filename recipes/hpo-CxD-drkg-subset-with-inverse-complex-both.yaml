@@ -15,14 +15,14 @@ valid:
     patience: 3
 
 eval:
-  type: CxDRankingHetionetAvg
+  type: MyJob
 
 user:
   dataset: drkg
   dataset_variant: subset-with-inverse
 
 model: complex
-
+import: [MyFile]
 # Ax settings: hyperparameter search space
 ax_search:
   num_trials: 30

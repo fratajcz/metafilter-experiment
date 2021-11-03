@@ -14,8 +14,10 @@ valid:
   early_stopping:
     patience: 3
 
+import: [MyFile]
+
 eval:
-  type: CxDRankingHetionetAvg
+  type: MyJob
 
 user:
   dataset: drkg

@@ -13,7 +13,7 @@ valid:
     patience: 3
 
 eval:
-  type: MyJob #CxDRankingHetionetAvg
+  type: MyJob
 
 user:
   fold: 4

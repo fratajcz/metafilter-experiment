@@ -16,12 +16,13 @@ valid:
 
 eval:
   batch_size: 128
-  type: CxDRankingHetionetAvg
+  type: MyJob
 
 user:
   dataset_variant: subset-with-inverse
   dataset: drkg
 
+import: [MyFile]
 # Ax settings: hyperparameter search space
 ax_search:
   num_trials: 30
