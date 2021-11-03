@@ -39,7 +39,7 @@ If you use your own dataset and/or produced new splits of Hetionet and/or DRKG, 
 
 ## Place datasets
 
-Download the datasets from [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5638999.svg)](https://doi.org/10.5281/zenodo.5638999), unzip them (i.e. using ```tar -xzvf data data.tar.gz```) and place the contents in ```kge/data/```. Note that there should not be any intermediate directories like ```kge/data/whatever/another/hetionet-fold1-subset-with-inverse/``` but instead just ```kge/data/hetionet-fold1-subset-with-inverse/``` to work.
+Download the datasets from [10.5281/zenodo.5638999](https://doi.org/10.5281/zenodo.5638999), unzip them (i.e. using ```tar -xzvf data data.tar.gz```) and place the contents in ```kge/data/```. Note that there should not be any intermediate directories like ```kge/data/whatever/another/hetionet-fold1-subset-with-inverse/``` but instead just ```kge/data/hetionet-fold1-subset-with-inverse/``` to work.
 
 # Usage
 
