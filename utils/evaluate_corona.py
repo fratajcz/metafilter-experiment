@@ -12,10 +12,10 @@ parser.add_argument("-p","--path",type=str, default="", help="path to the direct
 args = parser.parse_args()
 
 
-corona_variants = pd.read_csv("/homestg/z0042eaf/corona_variants_subset.tsv", sep="\t", names=["id", "name"])
+corona_variants = pd.read_csv("corona_variants_subset.tsv", sep="\t", names=["id", "name"])
 print(corona_variants)
 
-corona_agents = pd.read_csv("/homestg/z0042eaf/src/libkge/corona_agents.tsv", sep="\t")
+corona_agents = pd.read_csv("corona_agents.tsv", sep="\t")
 
 corona_agents = corona_agents[corona_agents["in_dataset"] == 1]["id"]
 corona_agents = ["Compound::" + name for name in corona_agents]
@@ -23,31 +23,17 @@ print(corona_agents)
 
 disease_encoder = preprocessing.LabelEncoder()
 compound_encoder = preprocessing.LabelEncoder()
-disease_encoder.classes_ = np.load('/homestg/z0042eaf/truth_drkg/disease_classes.npy',allow_pickle = True)
-compound_encoder.classes_ = np.load('/homestg/z0042eaf/truth_drkg/compound_classes.npy',allow_pickle = True)
+disease_encoder.classes_ = np.load('truth_drkg/disease_classes.npy',allow_pickle = True)
+compound_encoder.classes_ = np.load('truth_drkg/compound_classes.npy',allow_pickle = True)
 
-#best_model = "local/experiments/20210201-181752-hpo-CxD-hetionet-fold1-subset-with-inverse-transe-both/00014/checkpoint_best.pt"
 
-prefix = "/aig/users/z0042eaf/experiments/"
-#prefix = "/homestg/z0042eaf/src/libkge/local/experiments/"
+prefix = "~/kge/local/experiments/"
 suffix = "checkpoint_best.pt"
-
-
-#DRKG:
-##Complex:
-# Subset:
-run = "20210302-170815-hpo-CxD-drkg-subset-with-inverse-complex-both/00006/"
-# Full:
-#run = "20210302-171854-hpo-CxD-drkg-full-with-inverse-complex-both/00006/"
-
-print(run)
 
 
 evaluation_relation_whitelist = ['union::treats::Compound:Disease_inv']
 
-best_model = prefix + run + suffix
-
-#best_model = "/homestg/z0042eaf/src/libkge/local/experiments/20210205-071150-hpo-default-hetionet-fold1-subset-with-inverse-conve-both/00000/checkpoint_best.pt"
+best_model =  args.path + suffix
 
 checkpoint = load_checkpoint(best_model)
 
@@ -63,13 +49,13 @@ model = KgeModel.create_from(checkpoint)
 
 model = model.cpu()
 
-sys.path.append("/homestg/z0042eaf/")
+sys.path.append("~/kge/")
 from evaluator import Evaluator
 
 
 
-entity_ids_df = pd.read_csv("/homestg/z0042eaf/src/libkge/data/drkg-{}/entity_ids.del".format(dataset_version),sep="\t",names=['id', 'name'])
-relation_ids_df = pd.read_csv("/homestg/z0042eaf/src/libkge/data/drkg-{}/relation_ids.del".format(dataset_version),sep="\t",names=['id', 'name'])
+entity_ids_df = pd.read_csv("~/kge/data/drkg-{}/entity_ids.del".format(dataset_version),sep="\t",names=['id', 'name'])
+relation_ids_df = pd.read_csv("~/kge/data/drkg-{}/relation_ids.del".format(dataset_version),sep="\t",names=['id', 'name'])
 
 entity_ids = {x["name"]: x["id"] for _, x in entity_ids_df.iterrows()}
 relation_ids = {x["name"]: x["id"] for _, x in relation_ids_df.iterrows()}
@@ -178,46 +164,5 @@ results_table.to_csv("corona_mrrs_subset.csv")
 
 print(metrics)
 
-##### Manually compute compound - CtD - disease ~ 0:
-"""
-compound_minus_relation =  torch.subtract(compound_embeddings, relation_embeddings[0])
 
-cdist_result = torch.cdist(compound_minus_relation,disease_embeddings,1)
-proximity_matrix = cdist_result * -1
-
-
-evaluator.evaluate(proximity_matrix.detach().numpy(), use_testing=True)
-
-
-metrics = {"mrr_CxD_train": float(evaluator.mrrs_row_train[-1]),
-            "mrr_CxD_val": float(evaluator.mrrs_row_val[-1]),
-            "mrr_CxD_test": float(evaluator.mrrs_row_test[-1]),
-            "mrr_DxC_train": float(evaluator.mrrs_col_train[-1]),
-            "mrr_DxC_val": float(evaluator.mrrs_col_val[-1]),
-            "mrr_DxC_test": float(evaluator.mrrs_col_test[-1])}
-
-print("Compound - {} = Disease:".format(evaluation_relation_whitelist[0]))
-print(metrics)
-
-##### Manually compute compound + CtD - disease ~ 0:
-
-compound_plus_relation =  torch.add(compound_embeddings, relation_embeddings[0])
-
-cdist_result = torch.cdist(compound_plus_relation,disease_embeddings,1)
-proximity_matrix = cdist_result * -1
-
-evaluator.evaluate(proximity_matrix.detach().numpy(), use_testing=True)
-
-
-metrics = {"mrr_CxD_train": float(evaluator.mrrs_row_train[-1]),
-            "mrr_CxD_val": float(evaluator.mrrs_row_val[-1]),
-            "mrr_CxD_test": float(evaluator.mrrs_row_test[-1]),
-            "mrr_DxC_train": float(evaluator.mrrs_col_train[-1]),
-            "mrr_DxC_val": float(evaluator.mrrs_col_val[-1]),
-            "mrr_DxC_test": float(evaluator.mrrs_col_test[-1])}
-
-
-print("Compound + {} = Disease:".format(evaluation_relation_whitelist[0]))
-print(metrics)
-"""
 #evaluator.random()

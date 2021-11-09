@@ -16,26 +16,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-p","--path", type=str, default="", help="path to the directory where checkpoint_best.pt is stored.")
 args = parser.parse_args()
 
-prefix = "/aig/users/z0042eaf/experiments/"
-#prefix = "/homestg/z0042eaf/src/libkge/local/experiments/"
+prefix = "~/kge"
+
 suffix = "checkpoint_best.pt"
 
 num_draws = 100
-
-#DRKG:
-##Complex:
-#run = {"subset": "20210302-170815-hpo-CxD-drkg-subset-with-inverse-complex-both/00006/",
-#        "full": "20210302-171854-hpo-CxD-drkg-full-with-inverse-complex-both/00006/"}
-
-# Hetionet:
-## RESCAL:
-
-#run = {"subset": "20210212-062234-hpo-CxD-hetionet-fold1-subset-with-inverse-rescal-both/00019/",
-#        "full": "20210212-062234-hpo-CxD-hetionet-fold1-full-with-inverse-rescal-both/00019/"}
-
-#ComplEx
-#run = {"subset": "20210203-064415-hpo-CxD-hetionet-fold1-subset-with-inverse-complex-both/00006/",
-#        "full": "20210203-064415-hpo-CxD-hetionet-fold1-full-with-inverse-complex-both/00006/"}
 
 runs = {"hetionet": 
         {"full": "20210203-064415-hpo-CxD-hetionet-fold1-full-with-inverse-complex-both/00006/",
@@ -66,7 +51,7 @@ for i, (dataset_name, run) in enumerate(runs.items()):
     for j, version in enumerate(run.keys()):
         print(version)
 
-        best_model = prefix + run[version] + suffix
+        best_model = os.path.join(prefix ,"local/experiments", run[version] , suffix)
 
         checkpoint = load_checkpoint(best_model)
 
@@ -74,14 +59,14 @@ for i, (dataset_name, run) in enumerate(runs.items()):
         dataset_config = Config()
         
         if dataset_name == "hetionet":
-            dataset_config.load("/home/z0042eaf/src/libkge/hpo-CxD-hetionet-fold1-{}-with-inverse-complex-both.yaml".format(version))
+            dataset_config.load(os.path.join(prefix, "recipes/hpo-CxD-hetionet-fold1-{}-with-inverse-complex-both.yaml".format(version)))
         else:
-            dataset_config.load("/home/z0042eaf/src/libkge/hpo-CxD-drkg-{}-with-inverse-complex-both.yaml".format(version))
+            dataset_config.load(os.path.join(prefix, "recipes/hpo-CxD-drkg-{}-with-inverse-complex-both.yaml".format(version)))
         dataset = Dataset.create(dataset_config)
         print("Dataset Loaded")
 
         ns_config = Config()
-        ns_config.load(filename="/homestg/z0042eaf/src/libkge/negative_sampling_test.yaml")
+        ns_config.load(filename=os.path.join(prefix, "recipes/negative_sampling_test.yaml"))
         sampler = KgeSampler.create(ns_config, "negative_sampling", dataset)
         print("Sampler initialized")
         entropies = []
@@ -140,6 +125,6 @@ for i, (dataset_name, run) in enumerate(runs.items()):
 
 plt.legend(loc='upper left')
 plt.tight_layout()
-plt.savefig("/homestg/z0042eaf/negative_sampling_test_{}_both.png".format(num_draws))
+plt.savefig(os.path.join(prefix, "negative_sampling_test_{}_both.png".format(num_draws))
 plt.clf()
 #print(entropy(pos_scores,neg_scores))

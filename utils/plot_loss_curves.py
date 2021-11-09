@@ -3,38 +3,30 @@ import numpy as np
 
 
 
-
-## TransE:
-# Subset:
-subset =  "/20210222-160447-hpo-CxD-drkg-subset-with-inverse-transe-both/00002/"
-# Full:
-full = "20210222-071446-hpo-CxD-drkg-full-with-inverse-transe-both/00002/"
-
-
 runs = {'Hetionet':
             {'RESCAL': 
-                {'subset': "20210212-062234-hpo-CxD-hetionet-fold1-subset-with-inverse-rescal-both/00019/",
-                 'full': "20210212-062234-hpo-CxD-hetionet-fold1-full-with-inverse-rescal-both/00019/"},
+                {'subset': "",
+                 'full': ""},
              'DistMult':
-                {'subset': "20210203-062208-hpo-CxD-hetionet-fold1-subset-with-inverse-distmult-both/00006/",
-                 'full': "20210203-062637-hpo-CxD-hetionet-fold1-full-with-inverse-distmult-both/00006/"},
+                {'subset': "",
+                 'full': ""},
              'ComplEx':
-                {'subset': "20210203-064415-hpo-CxD-hetionet-fold1-subset-with-inverse-complex-both/00006/",
-                 'full': "20210203-064415-hpo-CxD-hetionet-fold1-full-with-inverse-complex-both/00006/"},
+                {'subset': "",
+                 'full': ""},
              'ConvE':
-                 {'subset': "20210212-092340-hpo-CxD-hetionet-fold1-subset-with-inverse-conve-both/00025/",
-                 'full': "20210212-071051-hpo-CxD-hetionet-fold1-full-with-inverse-conve-both/00018/"},   
+                 {'subset': "",
+                 'full': ""},   
                  },
         'DRKG':
             {'TransE': 
-                {'subset': "/20210222-160447-hpo-CxD-drkg-subset-with-inverse-transe-both/00002/",
-                 'full': "20210222-071446-hpo-CxD-drkg-full-with-inverse-transe-both/00002/"},
+                {'subset': "",
+                 'full': ""},
              'DistMult':
-                {'subset': "20210302-113022-hpo-CxD-drkg-subset-with-inverse-distmult-both/00006/",
-                 'full': "20210302-154646-hpo-CxD-drkg-full-with-inverse-distmult-both/00006/"},
+                {'subset': "",
+                 'full': ""},
              'ComplEx':
-                {'subset': "20210302-170815-hpo-CxD-drkg-subset-with-inverse-complex-both/00006/",
-                 'full': "20210302-171854-hpo-CxD-drkg-full-with-inverse-complex-both/00006/"},
+                {'subset': "",
+                 'full': ""},
              'ConvE':
                  {'subset': "",
                  'full': ""},   
