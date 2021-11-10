@@ -11,26 +11,6 @@ if not os.path.exists('truth_hetionet'):
 
 base_path = "~/kge/"
 
-def str2bool(v):
-    import argparse
-    if isinstance(v, bool):
-        return v
-    if v.lower() in ('yes', 'true', 't', 'y', '1','True'):
-        return True
-    elif v.lower() in ('no', 'false', 'f', 'n', '0','False'):
-        return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
-"""
-import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument("-f","--fromdataset",type=str2bool, nargs='?',
-                        const=True, default=False,
-                        help="Do not calculate splits but instead use train/val/test splits from libkge dataset")
-parser.add_argument("-p","--path",type=str, default="", help="path to the directory where libkge dataset is stored.")
-args = parser.parse_args()
-"""
-
 for fold in [1,2,3,4]:
     # path to the libkge identity_ids.del
     subset_entities = pd.read_csv(base_path + "data/hetionet-fold{}-subset-with-inverse/entity_ids.del".format(fold), sep="\t", names=["id", "name"])
@@ -67,6 +47,7 @@ for fold in [1,2,3,4]:
     test_edges_subset = test_edges_subset[test_edges_subset["edge"] == "CtD"]
     print(len(val_edges_subset))
     print(len(test_edges_subset))
+
     splits = {'train': train_edges_subset, 'val': val_edges_subset, 'test': test_edges_subset}
 
     for split in ['train','val','test']:

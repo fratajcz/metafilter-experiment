@@ -1,5 +1,3 @@
-# sherlock
-
 # Purpose
 
 This repository contains the code for the experiments in the paper "Task-Driven Knowledge Graph Filtering Improves Prioritizing Drugs for Repurposing" (DOI: [10.21203/rs.3.rs-721705/v1](https://doi.org/10.21203/rs.3.rs-721705/v1). 
@@ -70,4 +68,4 @@ without adding ```checkpoint_best.pt```. This create a ```results``` directory i
 
 # Use it on your own dataset!
 
-To see if your dataset can benefit from modification, check the sister repo metafilter-apply and read the instructions on how to apply metapath based filtering to your Knowledge Graph!
+To see if your dataset can benefit from task-driven modification, check the sister repo [metafilter-apply](https://github.com/fratajcz/metafilter-apply) and read the instructions on how to apply metapath based filtering to your Knowledge Graph!

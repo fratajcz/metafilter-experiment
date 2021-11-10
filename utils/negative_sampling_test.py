@@ -11,11 +11,6 @@ from sklearn import preprocessing
 from scipy.stats import entropy
 
 
-import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument("-p","--path", type=str, default="", help="path to the directory where checkpoint_best.pt is stored.")
-args = parser.parse_args()
-
 prefix = "~/kge"
 
 suffix = "checkpoint_best.pt"
@@ -127,4 +122,3 @@ plt.legend(loc='upper left')
 plt.tight_layout()
 plt.savefig(os.path.join(prefix, "negative_sampling_test_{}_both.png".format(num_draws))
 plt.clf()
-#print(entropy(pos_scores,neg_scores))
