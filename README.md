@@ -66,6 +66,20 @@ python3 evaluate_test.py -p kge/local/experiments/[your-experiment-name]/00027/
 
 without adding ```checkpoint_best.pt```. This create a ```results``` directory in you ```kge```directory containing the test results for the experiment that you provided. Note that all the paths that you have to use here depend on your directory structure and might be different on your machine!
 
+## query specific Compounds/Diseases
+
+To query only individual Compounds vs all diseases or individual Diseases vs all compounds, you can use the ```-c``` and ```-d``` arguments, respectively.
+
+```
+python3 evaluate_test.py -p kge/local/experiments/[your-experiment-name]/00027/ -d [your-disease-entity]
+```
+or
+```
+python3 evaluate_test.py -p kge/local/experiments/[your-experiment-name]/00027/ -c [your-compound-entity]
+```
+
+Notice that in this case, only the metrics of one scoring direction make sense. This means that if you score one disease vs all compounds, only the metrics with the identifier ```[metric]_DxC_[split]``` should be interpreted (since the other direction is 1 by definition). For the case of scoring one compound vs all diseases, only the metrics with the identifier ```[metric]_CxD_[split]``` should be interpreted.
+
 # Use it on your own dataset!
 
 To see if your dataset can benefit from task-driven modification, check the sister repo [metafilter-apply](https://github.com/fratajcz/metafilter-apply) and read the instructions on how to apply metapath based filtering to your Knowledge Graph!
