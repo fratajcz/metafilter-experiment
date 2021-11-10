@@ -11,6 +11,8 @@ from evaluator import Evaluator
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("-p","--path",type=str, default="", help="path to the directory where checkpoint_best.pt is stored.")
+parser.add_argument("-d","--disease",type=str, default="", help="query only for this disease identifier")
+parser.add_argument("-c","--compound",type=str, default="", help="query only for this compound identifier")
 args = parser.parse_args()
 
 
@@ -20,7 +22,6 @@ suffix = "checkpoint_best.pt"
 if args.path != "":
     run = args.path
 
-print(run)
 best_model = os.path.join(prefix, run, suffix)
 
 if "hetionet" in run:
@@ -73,8 +74,12 @@ if "hetionet" in best_model:
     else:
         raise ValueError(best_model)
 
-
-checkpoint["config"].set("dataset.name","{}-fold{}-{}".format(dataset,fold,dataset_version))
+if "hetionet" in best_model:
+    checkpoint["config"].set("dataset.name","{}-fold{}-{}".format(dataset,fold,dataset_version))
+elif "drkg" in best_model:
+    checkpoint["config"].set("dataset.name","{}-{}".format(dataset,dataset_version))
+else:
+    raise ValueError(best_model)
 
 model = KgeModel.create_from(checkpoint)
 
@@ -92,6 +97,7 @@ elif "drkg" in best_model:
     evaluator = Evaluator(ground_truth_train=os.path.join(base_path,"truth_drkg/ground_truth_train.npz"),
                           ground_truth_val=os.path.join(base_path,"truth_drkg/ground_truth_val.npz"),
                           ground_truth_test=os.path.join(base_path,"truth_drkg/ground_truth_test.npz"))
+
 
 if "hetionet" in best_model:
     if dataset_version != "":
@@ -117,8 +123,22 @@ elif "drkg" in best_model:
     disease_encoder.classes_ = np.load(os.path.join(base_path, 'truth_drkg/disease_classes.npy'),allow_pickle = True)
     compound_encoder.classes_ = np.load(os.path.join(base_path, 'truth_drkg/compound_classes.npy'),allow_pickle = True)
 
-disease_indices = torch.LongTensor([entity_ids[x] if x in entity_ids.keys() else -1 for x in disease_encoder.classes_])
-compound_indices = torch.LongTensor([entity_ids[x] if x in entity_ids.keys() else -1 for x in compound_encoder.classes_])
+if args.disease == "":
+    disease_indices = torch.LongTensor([entity_ids[x] if x in entity_ids.keys() else -1 for x in disease_encoder.classes_])
+else:
+    disease_indices = torch.LongTensor([entity_ids[x] if x in entity_ids.keys() else -1 for x in [args.disease]])
+    evaluator.truth_test_matrix = evaluator.truth_test_matrix[:,disease_encoder.transform([args.disease])]
+    evaluator.truth_train_matrix = evaluator.truth_train_matrix[:,disease_encoder.transform([args.disease])]
+    evaluator.truth_val_matrix = evaluator.truth_val_matrix[:,disease_encoder.transform([args.disease])]
+
+if args.compound == "":
+    compound_indices = torch.LongTensor([entity_ids[x] if x in entity_ids.keys() else -1 for x in compound_encoder.classes_])
+else:
+    compound_indices = torch.LongTensor([entity_ids[x] if x in entity_ids.keys() else -1 for x in [args.compound]])
+    evaluator.truth_test_matrix = evaluator.truth_test_matrix[compound_encoder.transform([args.compound]),:]
+    evaluator.truth_train_matrix = evaluator.truth_train_matrix[compound_encoder.transform([args.compound]),:]
+    evaluator.truth_val_matrix = evaluator.truth_val_matrix[compound_encoder.transform([args.compound]),:]
+
 relation_indices = torch.LongTensor([relation_ids[x] if x in relation_ids.keys() else -1 for x in evaluation_relation_whitelist])
  
 missing_diseases = torch.sum(torch.where(disease_indices == -1, 1, 0))
@@ -164,6 +184,7 @@ for i in range(num_relations):
             scores = model._scorer.score_emb(compound_embeddings, relation_embeddings[i].unsqueeze(0), disease_embeddings, combine= "sp_")
         scores = scores.reshape((num_compounds,num_diseases))
 
+
     else:
         if "conve" in best_model or "rescal" in best_model:
             scores = torch.empty((num_diseases,num_compounds))
@@ -179,6 +200,14 @@ for i in range(num_relations):
             
         scores = scores.reshape((num_diseases,num_compounds)).t()
 
+    if args.compound != "":
+        num_test_diseases = np.count_nonzero(evaluator.truth_test_matrix)
+        
+        print("Number of diseases that are being treated by {} in the test set: {}".format(args.compound,num_test_diseases))
+
+    if args.disease != "":
+        num_test_compounds = np.count_nonzero(evaluator.truth_test_matrix)
+        print("Number of compounds that treat {} in the test set: {}".format(args.disease,num_test_compounds))
 
     evaluator.evaluate(scores.detach().cpu().numpy(), use_testing=True)
 
@@ -221,6 +250,8 @@ for i in range(num_relations):
                         "hat50_DxC_val": float(evaluator.hat50_col_val[-1]),
                         "hat50_DxC_test": float(evaluator.hat50_col_test[-1])}) 
 
+
+
 metric_keys = ["mrr","mean_rank","hat5","hat10","hat20","hat50"]
 splits = ["train","val","test"]
 
@@ -240,10 +271,12 @@ for model in models:
 
 results = pd.DataFrame(data = metrics.values(), index=metrics.keys(), columns=["{}-{}-{}.csv".format(dataset,dataset_version,actual_model)])
 
-#results.to_csv(os.path.join(base_path, "results","hetionet-crossval", "{}-{}-{}.csv".format(dataset,dataset_version,actual_model)))
+
 if "hetionet" in best_model:
-    results.to_csv(os.path.join(base_path, "results", "{}-fold{}-{}-{}.csv".format(dataset,fold,dataset_version,actual_model)))
+    results.to_csv(os.path.join(base_path, "results", "{}-fold{}-{}-{}{}{}.csv".format(dataset,fold,dataset_version,actual_model,args.disease,args.compound)))
 else:
-    results.to_csv(os.path.join(base_path, "results", "{}-{}-{}.csv".format(dataset,dataset_version,actual_model)))
+    results.to_csv(os.path.join(base_path, "results", "{}-{}-{}{}{}.csv".format(dataset,dataset_version,actual_model,args.disease,args.compound)))
 
 print(metrics)
+
+#evaluator.random(10,seed=1,proximity=scores.detach().cpu().numpy(), use_testing=True)
